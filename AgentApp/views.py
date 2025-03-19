@@ -6,4 +6,6 @@ from twilio.twiml.voice_response import VoiceResponse
 def handle_incoming_call(request):
     response = VoiceResponse()
     response.say("Welcome to BitMadhav.")
-    return HttpResponse(str(response), content_type='text/xml')
+    
+    xml_response = str(response).strip()  # Ensure no leading/trailing spaces
+    return HttpResponse(xml_response, content_type='application/xml')
