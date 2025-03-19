@@ -43,8 +43,10 @@ INSTALLED_APPS = [
     'AgentApp'
 ]
 
+# thank to: https://stackoverflow.com/questions/65431326/django-app-on-azure-not-getting-static-files
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
