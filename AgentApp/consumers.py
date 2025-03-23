@@ -2,6 +2,7 @@ import os
 import json
 import base64
 import asyncio
+import io
 from openai import AzureOpenAI
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
@@ -71,10 +72,12 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
                 "media": {"payload": fake_audio_payload}
             }))
 
-    async def transcribe_audio(self, audio_data):
+    async def transcribe_audio(self, audio_bytes):
+        audio_file = io.BytesIO(audio_bytes)  # Convert bytearray to io.BytesIO
+        audio_file.name = "audio.wav"  # Assign a name to the file (required by OpenAI API)
         response = client.audio.transcriptions.create(
             model="gpt-4o-realtime-preview",
-            file=audio_data
+            file=audio_file
         )
         return response.text
 
