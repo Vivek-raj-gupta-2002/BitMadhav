@@ -10,8 +10,8 @@ VOICE = "alloy"
 SYSTEM_MESSAGE = "You are a helpful restaurant assistant. Answer questions about reservations and orders succinctly."
 
 # Initialize AzureOpenAI Clients
-client_whisper = AzureOpenAI(api_key=settings.OPENAI_API_KEY, api_version='2024-06-01')
-client_chat = AzureOpenAI(api_key=settings.OPENAI_API_KEY, api_version=settings.API_VERSION)
+client_whisper = AzureOpenAI(api_key=settings.OPENAI_API_KEY, api_version='2024-06-01', azure_endpoint=settings.WISPER_ENDPOINT)
+client_chat = AzureOpenAI(api_key=settings.OPENAI_API_KEY, api_version=settings.API_VERSION, azure_endpoint=settings.ENDPOINT)
 
 class MediaStreamConsumer(AsyncWebsocketConsumer):
     async def connect(self):
