@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -26,12 +30,13 @@ SECRET_KEY = 'django-insecure-a#jr!+1u1xkw0(7ojgwhs(^wxdj5+w^n@je8u83=r^c$dr!3z+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net',]
-CSRF_TRUSTED_ORIGINS  = ['https://bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net',]
+ALLOWED_HOSTS = ['bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net', '127.0.0.1']
+CSRF_TRUSTED_ORIGINS  = ['https://bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net', 'http://localhost:8000']
 
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,9 +44,18 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-
-    'AgentApp'
+    'channels',
+    'AgentApp',
 ]
+
+CHANNEL_LAYERS = {
+'default': {
+    'BACKEND': "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+ASGI_APPLICATION = 'MyProject.asgi.application'
+
 
 # thank to: https://stackoverflow.com/questions/65431326/django-app-on-azure-not-getting-static-files
 MIDDLEWARE = [
@@ -128,3 +142,8 @@ STATIC_ROOT = os.path.join(BASE_DIR / 'staticFiles')
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
+API_VERSION = os.getenv('API_VERSION')
+ENDPOINT = os.getenv('ENDPOINT')
+MODEL = os.getenv('MODEL')

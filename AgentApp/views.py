@@ -1,11 +1,20 @@
 from django.http import HttpResponse
-from rest_framework.decorators import api_view
-from twilio.twiml.voice_response import VoiceResponse
+from twilio.twiml.voice_response import VoiceResponse, Connect
+from django.conf import settings
 
-@api_view(['POST'])
-def handle_incoming_call(request):
+def incoming_call(request):
+    """
+    Returns TwiML for an incoming call:
+      - Says a greeting.
+      - Opens a WebSocket Media Stream to our Channels consumer.
+    """
     response = VoiceResponse()
-    response.say("Welcome to BitMadhav.")
+    response.say("Welcome to Blue Boar Inn! Please wait while we connect your call.", voice="alice")
     
-    xml_response = str(response).strip()  # Ensure no leading/trailing spaces
-    return HttpResponse(xml_response, content_type='application/xml')
+    # Use your domain (or ngrok during development)
+    host = request.get_host()
+    connect = Connect()
+    connect.stream(url=f"wss://{host}/ws/media-stream/")
+    response.append(connect)
+    
+    return HttpResponse(str(response), content_type="application/xml")
