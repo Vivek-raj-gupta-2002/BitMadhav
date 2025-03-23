@@ -46,7 +46,6 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
 
     async def handle_media(self, data):
         payload = data.get("media", {}).get("payload")
-        print(payload)
         if payload:
             self.audio_buffer.extend(base64.b64decode(payload))
 
@@ -60,7 +59,7 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
 
     async def process_audio(self):
         question = await self.transcribe_audio(self.audio_buffer)
-        print(self.audio_buffer)
+        
         self.audio_buffer.clear()
 
         if question:
@@ -73,7 +72,7 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
             audio_file.name = "audio.wav"
 
             response = client_whisper.audio.transcriptions.create(
-                model="whisper-1",
+                model="whisper",
                 file=audio_file,
                 
             )
