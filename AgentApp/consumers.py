@@ -18,9 +18,11 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
         await self.accept()
         self.stream_sid = None
         self.audio_buffer = bytearray()
+        print('Connected....')
         await self.send_json({"event": "connected"})
 
     async def disconnect(self, close_code):
+        print('Disconnected....')
         self.audio_buffer.clear()
 
     async def receive(self, text_data):
@@ -44,6 +46,7 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
 
     async def handle_media(self, data):
         payload = data.get("media", {}).get("payload")
+        print(payload)
         if payload:
             self.audio_buffer.extend(base64.b64decode(payload))
 
@@ -57,6 +60,7 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
 
     async def process_audio(self):
         question = await self.transcribe_audio(self.audio_buffer)
+        print(self.audio_buffer)
         self.audio_buffer.clear()
 
         if question:
