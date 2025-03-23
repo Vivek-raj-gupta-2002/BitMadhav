@@ -2,13 +2,22 @@ import os
 import json
 import base64
 import asyncio
-import websockets
+from openai import AzureOpenAI
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 
-# OpenAI Configuration
+# Azure OpenAI Configuration
 VOICE = "alloy"
 SYSTEM_MESSAGE = "You are a helpful restaurant assistant. Answer questions about reservations and orders succinctly."
+AZURE_OPENAI_ENDPOINT = "https://vivek-m8lxc6dc-eastus2.cognitiveservices.azure.com/"
+AZURE_OPENAI_API_VERSION = "2024-10-01-preview"
+
+# Initialize AzureOpenAI Client
+client = AzureOpenAI(
+    api_key=settings.OPENAI_API_KEY,
+    api_version=AZURE_OPENAI_API_VERSION,
+    azure_endpoint=AZURE_OPENAI_ENDPOINT
+)
 
 class MediaStreamConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -41,7 +50,7 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
         if payload:
             self.audio_buffer.extend(base64.b64decode(payload))
 
-            if len(self.audio_buffer) > 16000 * 2:  # Process every 2 seconds
+            if len(self.audio_buffer) >= 32000:  # Process every 2 seconds
                 await self.process_audio()
 
     async def handle_stop(self):
@@ -51,42 +60,30 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
 
     async def process_audio(self):
         question = await self.transcribe_audio(self.audio_buffer)
-        answer = await self.generate_answer(question)
-        self.audio_buffer.clear()
+        if question:
+            answer = await self.generate_answer(question)
+            self.audio_buffer.clear()
 
-        fake_audio_payload = base64.b64encode(answer.encode("utf-8")).decode("utf-8")
-        await self.send(json.dumps({
-            "event": "media",
-            "streamSid": self.stream_sid,
-            "media": {"payload": fake_audio_payload}
-        }))
+            fake_audio_payload = base64.b64encode(answer.encode("utf-8")).decode("utf-8")
+            await self.send(json.dumps({
+                "event": "media",
+                "streamSid": self.stream_sid,
+                "media": {"payload": fake_audio_payload}
+            }))
 
     async def transcribe_audio(self, audio_data):
-        async with websockets.connect(
-            'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01-preview',
-            extra_headers={
-                "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                "OpenAI-Beta": "realtime=v1"
-            }
-        ) as openai_ws:
-            await openai_ws.send(audio_data)
-            response = await openai_ws.recv()
-            return json.loads(response).get("text", "")
+        response = client.audio.transcriptions.create(
+            model="gpt-4o-realtime-preview",
+            file=audio_data
+        )
+        return response.text
 
     async def generate_answer(self, question):
-        async with websockets.connect(
-            'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01-preview',
-            extra_headers={
-                "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
-                "OpenAI-Beta": "realtime=v1"
-            }
-        ) as openai_ws:
-            payload = json.dumps({
-                "messages": [
-                    {"role": "system", "content": SYSTEM_MESSAGE},
-                    {"role": "user", "content": question}
-                ]
-            })
-            await openai_ws.send(payload)
-            response = await openai_ws.recv()
-            return json.loads(response).get("choices", [{}])[0].get("message", {}).get("content", "")
+        response = client.chat.completions.create(
+            model="gpt-4o-realtime-preview",
+            messages=[
+                {"role": "system", "content": SYSTEM_MESSAGE},
+                {"role": "user", "content": question}
+            ]
+        )
+        return response.choices[0].message.content
