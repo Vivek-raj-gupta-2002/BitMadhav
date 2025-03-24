@@ -28,9 +28,14 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
+      - name: Install dependencies
+        run: pip install --upgrade pip
       
       - name: Install dependencies
         run: pip install -r requirements.txt
+
+      - name: collect statics
+        run: python manage.py collectstatic
         
       # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
