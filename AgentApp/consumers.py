@@ -1,17 +1,14 @@
 import json
 import base64
 import io
-from openai import AzureOpenAI
+import asyncio
+import websockets
 from channels.generic.websocket import AsyncWebsocketConsumer
 from django.conf import settings
 
 # Azure OpenAI Configuration
 VOICE = "alloy"
 SYSTEM_MESSAGE = "You are a helpful restaurant assistant. Answer questions about reservations and orders succinctly."
-
-# Initialize AzureOpenAI Clients
-client_whisper = AzureOpenAI(api_key=settings.OPENAI_API_KEY, api_version='2024-06-01', azure_endpoint=settings.WISPER_ENDPOINT)
-client_chat = AzureOpenAI(api_key=settings.OPENAI_API_KEY, api_version=settings.API_VERSION, azure_endpoint=settings.ENDPOINT)
 
 class MediaStreamConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -58,42 +55,55 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
         await self.send_json({"event": "stop_received"})
 
     async def process_audio(self):
-        question = await self.transcribe_audio(self.audio_buffer)
-        
+        question = await self.transcribe_and_generate(self.audio_buffer)
         self.audio_buffer.clear()
 
         if question:
-            answer = await self.generate_answer(question)
-            await self.send_audio(answer)
+            await self.send_audio(question)
 
-    async def transcribe_audio(self, audio_bytes):
+    async def transcribe_and_generate(self, audio_bytes):
         try:
-            audio_file = io.BytesIO(audio_bytes)
-            audio_file.name = "audio.wav"
+            async with websockets.connect(
+                'wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-12-17',
+                extra_headers={
+                    "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+                    "OpenAI-Beta": "realtime=v1"
+                }
+            ) as openai_ws:
 
-            response = client_whisper.audio.transcriptions.create(
-                model="whisper",
-                file=audio_file,
-                
-            )
-            return response.text
+                # Initialize session
+                session_update = {
+                    "type": "session.update",
+                    "session": {
+                        "turn_detection": {"type": "server_vad"},
+                        "input_audio_format": "pcm_mulaw",
+                        "output_audio_format": "pcm_mulaw",
+                        "voice": VOICE,
+                        "instructions": SYSTEM_MESSAGE,
+                        "modalities": ["text", "audio"],
+                        "temperature": 0.8,
+                    }
+                }
+                await openai_ws.send(json.dumps(session_update))
+
+                # Send audio data
+                audio_payload = base64.b64encode(audio_bytes).decode("utf-8")
+                await openai_ws.send(json.dumps({
+                    "type": "data",
+                    "data": {
+                        "audio": audio_payload
+                    }
+                }))
+
+                # Receive and process the AI's response
+                response = await openai_ws.recv()
+                response_data = json.loads(response)
+
+                return response_data.get("response", {}).get("text", "")
+
         except Exception as e:
-            await self.send_json({"event": "error", "message": f"Transcription failed: {str(e)}"})
+            await self.send_json({"event": "error", "message": f"Processing failed: {str(e)}"})
             return ""
-
-    async def generate_answer(self, question):
-        try:
-            response = client_chat.chat.completions.create(
-                model="gpt-4o-realtime-preview",
-                messages=[
-                    {"role": "system", "content": SYSTEM_MESSAGE},
-                    {"role": "user", "content": question}
-                ]
-            )
-            return response.choices[0].message.content
-        except Exception as e:
-            await self.send_json({"event": "error", "message": f"Chat generation failed: {str(e)}"})
-            return "I'm sorry, I couldn't process your request."
 
     async def send_audio(self, text):
         try:

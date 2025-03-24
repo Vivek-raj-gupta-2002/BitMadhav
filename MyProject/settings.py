@@ -144,7 +144,3 @@ STATIC_ROOT = os.path.join(BASE_DIR / 'staticFiles')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-API_VERSION = os.getenv('API_VERSION')
-ENDPOINT = os.getenv('ENDPOINT')
-MODEL = os.getenv('MODEL')
-WISPER_ENDPOINT = os.getenv('WISPER_ENDPOINT')
