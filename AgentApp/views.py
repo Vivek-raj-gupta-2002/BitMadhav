@@ -9,7 +9,7 @@ def incoming_call(request):
       - Opens a WebSocket Media Stream to our Channels consumer.
     """
     response = VoiceResponse()
-    response.say("Welcome to Blue Boar Inn! Please wait while we connect your call.", voice="alice")
+    response.say("Welcome to BitMadhav! How May I help you Today!", voice="alice")
     
     # Use your domain (or ngrok during development)
     host = request.get_host()
