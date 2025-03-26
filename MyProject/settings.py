@@ -31,7 +31,8 @@ SECRET_KEY = 'django-insecure-a#jr!+1u1xkw0(7ojgwhs(^wxdj5+w^n@je8u83=r^c$dr!3z+
 DEBUG = True
 
 ALLOWED_HOSTS = ['7d11-2401-4900-7b30-961d-2ce5-9a1b-5003-a09a.ngrok-free.app', 'bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net', '127.0.0.1', "169.254.129.2", '169.254.129.4']
-CSRF_TRUSTED_ORIGINS  = ['https://7d11-2401-4900-7b30-961d-2ce5-9a1b-5003-a09a.ngrok-free.app', 'https://bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net', 'http://localhost:8000']
+CSRF_TRUSTED_ORIGINS  = ['https://687a-2401-4900-7b1f-158b-e9fb-f805-1475-a7bf.ngrok-free.app', 'https://bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net', 'http://localhost:8000']
+
 
 # Application definition
 
