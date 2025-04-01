@@ -8,22 +8,31 @@ from urllib.parse import parse_qs
 from django.conf import settings
 from AgentApp import models
 from asgiref.sync import sync_to_async
+from django.utils.timezone import localdate
+from datetime import datetime, timedelta
+from openai import AzureOpenAI
+from twilio.rest import Client
 
 # Configuration variables from Django settings
 OPENAI_API_KEY = settings.OPENAI_API_KEY
 ENDPOINT = settings.ENDPOINT
+AZURE_ENDPOINT = settings.AZURE_ENDPOINT
+TWILIO_SID = settings.TWILIO_SID
+TWILIO_TOKEN = settings.TWILIO_TOKEN
+TWILIO_NUMBER = settings.TWILIO_NUMBER
 
 # System message to guide the AI's tone and behavior
 SYSTEM_MESSAGE = """
 You are BitMadhav, an AI assistant for a restaurant located at **Gopur Square, Indore, India**. Your responsibilities include:
-
+**Time Standard**: Indian Standard Time(Asia/Kolkata)
+Currency: INR
 1. **Table Reservations**:
    - Accept reservations only between **5:00 PM and 9:00 PM** (17:00 to 21:00) and at least **1 hour from the current time**.
    - Allow bookings **only for today or tomorrow**.
    - **Details for reservations**:
         - Name
-        - date
-        - time
+        - date(YYYY-MM-DD)
+        - time(HH:MM:SS)
         - number of guests
    - Ensure **no overlapping reservations** within **1 to 1.5 hours** of any confirmed booking.  
      Example: If a reservation is made at 6:00 PM, other bookings between **5:00 PM and 7:30 PM** are not allowed.
@@ -73,8 +82,10 @@ You are BitMadhav, an AI assistant for a restaurant located at **Gopur Square, I
 
 When handling reservations:
 1. Confirm the customer’s details clearly.
-2. Validate availability.
+2. Validate availability using the information of reservation '**Current Reservations**' only.
 3. If available, confirm the reservation. Otherwise, suggest the closest available time.
+
+Note: We are not talking food orders right now!!
 """
 
 
@@ -116,6 +127,7 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
 
             self.stream_sid = None  # Initialize stream ID for Twilio
             self.caller_number = None
+            self.reservation = {'name': None, 'guests': None, 'date': None, 'time': None, 'phone': None}
 
             # Start background task to process OpenAI responses
             self.openai_task = asyncio.create_task(self.send_to_twilio())
@@ -138,6 +150,7 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
                 self.stream_sid = data['start']['streamSid']
                 callid = data['start']['callSid']
                 self.caller_number = await self.get_phone_number(callid)
+                self.reservation['phone'] = self.caller_number
 
             elif event == "media" and self.openai_ws.state:
                 # Forward audio payload to OpenAI for processing
@@ -166,7 +179,34 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
                     continue
 
                 if response['type'] == 'response.audio_transcript.done' and response.get('transcript'):
-                    print(response)
+                    user_data = await self.extract_reservation_details(response.get('transcript'))
+                    
+                    if user_data != None:
+
+                        if user_data['name'] != '':
+                            self.reservation['name'] = user_data['name']
+
+                        if user_data['guests'] != 0:
+                            self.reservation['guests'] = user_data['guests']
+
+                        if user_data['date'] != '':
+                            self.reservation['date'] = user_data['date']
+
+                        if user_data['time'] != '':
+                            self.reservation['time'] = user_data['time']
+
+                    reserv_condition = (
+                        self.reservation['name'] not in (None, '')
+                        and self.reservation['guests'] not in (None, 0)
+                        and self.reservation['date'] not in (None, '')
+                        and self.reservation['time'] not in (None, '')
+                        and self.reservation['phone'] != None
+                    )
+                    print(self.reservation)
+                    if reserv_condition:
+                        await sync_to_async(models.Table.objects.create)(**self.reservation)
+                        await self.send_sms(self.reservation)
+                        
 
                 # Handle audio output from OpenAI
                 if response['type'] == 'response.audio.delta' and response.get('delta'):
@@ -188,12 +228,17 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(f"Error in send_to_twilio: {e}")
 
+    
+
     async def send_session_update(self):
         """
         Sends session configuration to OpenAI to define input/output settings.
         Input: None
         Output: Sends session update to OpenAI WebSocket.
         """
+
+        reservations = await self.get_reservations()
+        updated_session = SYSTEM_MESSAGE + f"\n\nCurrent Reservations:\n{reservations}"
         session_update = {
             "type": "session.update",
             "session": {
@@ -201,7 +246,7 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
                 "input_audio_format": "g711_ulaw",
                 "output_audio_format": "g711_ulaw",
                 "voice": VOICE,
-                "instructions": SYSTEM_MESSAGE,
+                "instructions": updated_session,
                 "modalities": ["text", "audio"],
                 "temperature": 0.8,
             }
@@ -240,3 +285,80 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
     @sync_to_async
     def get_phone_number(self, callSid):
         return models.Sid.objects.get(callsid = callSid).phone_number
+    
+    @sync_to_async
+    def get_reservations(self):
+        today = localdate()
+        tomorrow = today + timedelta(days=1)
+        
+        reservations = models.Table.objects.filter(date__in = [today, tomorrow])
+
+        formatted_reservations = "\n".join(
+            f"- {r.name}: {r.date} at {r.time} for {r.num_guests} guests"
+            for r in reservations
+        )
+        return formatted_reservations if formatted_reservations else "No reservations yet."
+
+    @sync_to_async
+    def extract_reservation_details(self, transcript):
+        self.client = AzureOpenAI(
+            azure_endpoint=AZURE_ENDPOINT,
+            api_key=OPENAI_API_KEY,
+            api_version='2025-01-01-preview'  # Use a stable version
+        )
+        
+        response = self.client.chat.completions.create(
+            model="gpt-4o",  # Use actual deployed model name from Azure
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "Extract restaurant reservation details (name, guests, date(YYYY-MM-DD), time(HH:MM:SS)) accurately from the given text. "
+                        "If a value is missing, return an empty string without making up values. "
+                        "Use the Indian Time Asia/Kolkata"
+                        "Extract the date if user says today and tommarow according to IST"
+                    )
+                },
+                {"role": "user", "content": transcript}
+            ],
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "extract_reservation_info",
+                        "description": "Extracts reservation details such as name, number of guests, date, time.",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "name": {"type": "string", "description": "Customer's full name if provided, otherwise empty."},
+                                "guests": {"type": "integer", "description": "Number of guests if mentioned, otherwise 0."},
+                                "date": {"type": "string", "format": "date", "description": "Reservation date (YYYY-MM-DD) if available, otherwise empty."},
+                                "time": {"type": "string", "format": "time", "description": "Reservation time (HH:MM) if mentioned, otherwise empty."},
+                                "phone": {"type": "string", "description": "Customer's phone number if given, otherwise empty."}
+                            },
+                            "required": ["name", "guests", "date", "time"]
+                        }
+                    }
+                }
+            ],
+            tool_choice="auto",  # Let Azure decide when to use the function
+        )
+
+
+        try:
+            result = json.loads(response.choices[0].message.tool_calls[0].function.arguments)
+            return result
+        except Exception as e:
+            print(f"Error parsing response: {e}")
+            return None
+
+    @sync_to_async  
+    def send_sms(self, message_info):
+
+        message = f"Hello {message_info['name']}, your table for {message_info['guests']} is confirmed at BitMadhav on {message_info['date']} at {message_info['time']}. " \
+        "Please arrive on time. If you need any changes, call +91XXXXXXXXXX. See you soon! 🍽️"
+
+
+        myClient = Client(TWILIO_SID, TWILIO_TOKEN)
+        myClient.messages.create(from_=TWILIO_NUMBER, body=message, to=self.caller_number)
+
