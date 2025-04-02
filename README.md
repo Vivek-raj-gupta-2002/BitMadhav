@@ -58,17 +58,21 @@
 
     # Azure OpenAI settings
     OPENAI_API_KEY=your_azure_openai_api_key
+    
     ENDPOINT=wss://your-resource-name.openai.azure.com
+
     AZURE_ENDPOINT=https://your-resource-name.openai.azure.com
     
 
     # Twilio settings
     TWILIO_SID=your_twilio_account_sid
+
     TWILIO_AUTH_TOKEN=your_twilio_auth_token
+    
     TWILIO_NUMBER=your_twilio_number
 
 
- 5. **Apply migrations:**
+ 6. **Apply migrations:**
 
     python manage.py migrate
 
