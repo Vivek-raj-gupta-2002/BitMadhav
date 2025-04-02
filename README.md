@@ -28,11 +28,9 @@
 
  ### Prerequisites
 
- - Python 3.8+
- - Django 3.2+ (or Django 4.x)
- - Redis (for Celery broker)
- - Celery
- - Django Channels
+ - Python 3.8+(used 3.11)
+ - Django 5.1+ (used 5.1.11)
+ - Django Channels (used 4.2.0)
  - Twilio Account (for audio integration)
  - Azure OpenAI Service (with valid API keys and endpoint)
  - Other dependencies as listed in `requirements.txt`
@@ -41,8 +39,8 @@
 
  1. **Clone the repository:**
 
-    git clone https://github.com/yourusername/bitmadhav.git
-    cd bitmadhav
+    git clone https://github.com/Vivek-raj-gupta-2002/BitMadhav
+    cd BitMadhav
 
  2. **Create and activate a virtual environment:**
 

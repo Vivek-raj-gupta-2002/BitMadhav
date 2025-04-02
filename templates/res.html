@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BitMadhav - Reservation Details</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+        }
+
+        .branding {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+       
+
+        .branding h1 {
+            margin: 5px 0;
+            font-size: 24px;
+            color: tomato;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            color: tomato;
+        }
+
+        .details {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #fff3e6;
+            position: relative;
+            text-align: left;
+        }
+
+        .details p {
+            margin: 10px 0;
+        }
+
+        .edit-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .edit-btn:hover {
+            color: #007bff;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .cancel-btn {
+            background-color: tomato;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background-color: darkred;
+        }
+
+        .update-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .update-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .form-container {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: #f1f1f1;
+            text-align: left;
+        }
+
+        .form-container label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        .form-container input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .footer {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Branding -->
+    <div class="branding">
+        <h1>BitMadhav</h1>
+        <p>Your AI-Powered Restaurant Assistant</p>
+    </div>
+
+    <div class="container">
+        <h2>Reservation Details</h2>
+        <div class="details">
+            <button class="edit-btn" onclick="showUpdateForm()">✏️</button>
+            <p><strong>Reservation ID:</strong> #12345</p>
+            <p><strong>Name:</strong> John Doe</p>
+            <p><strong>Table:</strong> 5</p>
+            <p><strong>Date:</strong> <span id="res-date">April 2, 2025</span></p>
+            <p><strong>Time:</strong> <span id="res-time">7:00 PM</span></p>
+        </div>
+
+        <div class="form-container hidden" id="updateForm">
+            <h3>Update Reservation</h3>
+            <label for="newDate">New Date:</label>
+            <input type="date" id="newDate">
+
+            <label for="newTime">New Time:</label>
+            <input type="time" id="newTime">
+
+            <button class="btn update-btn" onclick="updateReservation()">Update</button>
+        </div>
+
+        <button class="btn cancel-btn" onclick="cancelReservation()">Cancel Reservation</button>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        &copy; 2025 BitMadhav. All rights reserved.
+    </div>
+
+    <script>
+        function showUpdateForm() {
+            document.getElementById("updateForm").classList.toggle("hidden");
+        }
+
+        function updateReservation() {
+            let newDate = document.getElementById("newDate").value;
+            let newTime = document.getElementById("newTime").value;
+
+            if (newDate && newTime) {
+                document.getElementById("res-date").textContent = newDate;
+                document.getElementById("res-time").textContent = newTime;
+                alert("Reservation updated successfully!");
+                document.getElementById("updateForm").classList.add("hidden");
+            } else {
+                alert("Please enter both date and time.");
+            }
+        }
+
+        function cancelReservation() {
+            if (confirm("Are you sure you want to cancel this reservation?")) {
+                alert("Reservation canceled successfully.");
+            }
+        }
+    </script>
+
+</body>
+
+</html>
