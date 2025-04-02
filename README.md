@@ -84,16 +84,27 @@
  ## Project Structure
 
  bitmadhav/
+ 
  ├── AgentApp/                  # Django app containing business logic, models, and consumers
+ 
  │   ├── consumers.py          # WebSocket consumer for real-time communication
+ 
  │   ├── models.py             # Django models (e.g., Table, Sid)
+ 
  │   └── ...
+ 
  ├── bitmadhav/                # Project settings and configuration
+ 
  │   ├── settings.py
+ 
  │   ├── urls.py
+ 
  │   └── ...
+ 
  ├── requirements.txt          # Python dependencies
+ 
  ├── manage.py                 # Django management script
+ 
  └── README.md                 # This file
 
  ## Running the Project
