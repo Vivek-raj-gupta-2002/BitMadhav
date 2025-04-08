@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Reservation Cancelled - BitMadhav</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fdf2f2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            flex-direction: column;
+            margin: 0;
+        }
+
+        .branding {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .branding h1 {
+            color: tomato;
+            margin-bottom: 5px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 25px 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .container h2 {
+            color: darkred;
+        }
+
+        .home-btn {
+            margin-top: 20px;
+            background-color: tomato;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+
+        .home-btn:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="branding">
+        <h1>BitMadhav</h1>
+        <p>Your AI-Powered Restaurant Assistant</p>
+    </div>
+
+    <div class="container">
+        <h2>Reservation Cancelled</h2>
+        <p>Reservation ID <strong>#{{ reservation_id }}</strong> linked to phone <strong>{{ phone }}</strong> has been
+            successfully cancelled.</p>
+        <p>Thank you for using BitMadhav!</p>
+    </div>
+
+</body>
+
+</html>

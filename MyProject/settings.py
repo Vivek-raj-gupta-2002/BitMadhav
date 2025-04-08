@@ -77,7 +77,7 @@ ROOT_URLCONF = 'MyProject.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [os.path.join(BASE_DIR / 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -152,4 +152,5 @@ AZURE_ENDPOINT = os.getenv('AZURE_ENDPOINT')
 TWILIO_SID = os.getenv('TWILIO_SID')
 TWILIO_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
 TWILIO_NUMBER = os.getenv('TWILIO_NUMBER')
+HOST = os.environ.get("BASE_URL", "localhost:8000")
 # print(OPENAI_API_KEY, ENDPOINT, AZURE_ENDPOINT)

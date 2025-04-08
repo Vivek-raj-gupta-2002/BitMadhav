@@ -1,6 +1,8 @@
 from django.http import HttpResponse
-from .models import Sid
+from django.shortcuts import render, redirect
+from .models import Sid, Table
 from twilio.twiml.voice_response import VoiceResponse, Connect
+from django.shortcuts import render, get_object_or_404
 
 def incoming_call(request):
     """
@@ -28,3 +30,16 @@ def incoming_call(request):
     response.append(connect)
 
     return HttpResponse(str(response), content_type="application/xml")
+
+
+def reservation_details(request, phone_number, reservation_id):
+    reservation = get_object_or_404(Table, id=reservation_id, phone=phone_number)
+    return render(request, 'res.html', {'reservation': reservation})
+    
+def cancel_reservation(request, reservation_id, phone_number):
+    reservation = get_object_or_404(Table, id=reservation_id, phone=phone_number)
+    reservation.delete()  # or update a status field instead of deleting
+    return render(request, 'cancel_confirmation.html', {
+        'reservation_id': reservation_id,
+        'phone': phone_number,
+    })

@@ -15,5 +15,5 @@ class Table(models.Model):
     guests = models.PositiveIntegerField()
 
     def __str__(self):
-        return f"Reservation for {self.name} on {self.date}"
+        return f"Reservation for {self.name} on {self.date} --- {self.id}"
 

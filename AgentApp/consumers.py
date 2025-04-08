@@ -88,7 +88,6 @@ When handling reservations:
 Note: We are not talking food orders right now!!
 """
 
-
 # Voice configuration for OpenAI responses
 VOICE = 'alloy'
 
@@ -228,7 +227,6 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
         except Exception as e:
             print(f"Error in send_to_twilio: {e}")
 
-    
 
     async def send_session_update(self):
         """
@@ -354,11 +352,14 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async  
     def send_sms(self, message_info):
+        view_link = f"https://{settings.HOST}/reservation/{message_info['phone']}/{message_info['id']}/"
 
-        message = f"Hello {message_info['name']}, your table for {message_info['guests']} is confirmed at BitMadhav on {message_info['date']} at {message_info['time']}. " \
-        "Please arrive on time. If you need any changes, call +91XXXXXXXXXX. See you soon! 🍽️"
-
+        message = (
+            f"Hello {message_info['name']}, your table for {message_info['guests']} is confirmed at BitMadhav on "
+            f"{message_info['date']} at {message_info['time']}. "
+            "Please arrive on time. If you need any changes, call +91XXXXXXXXXX. "
+            f"View reservation: {view_link} 🍽️"
+        )
 
         myClient = Client(TWILIO_SID, TWILIO_TOKEN)
         myClient.messages.create(from_=TWILIO_NUMBER, body=message, to=self.caller_number)
-
