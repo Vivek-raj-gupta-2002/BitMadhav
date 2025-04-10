@@ -127,7 +127,7 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
             self.stream_sid = None  # Initialize stream ID for Twilio
             self.caller_number = None
             self.reservation = {'name': None, 'guests': None, 'date': None, 'time': None, 'phone': None}
-
+            self.is_sms_send = False
             # Start background task to process OpenAI responses
             self.openai_task = asyncio.create_task(self.send_to_twilio())
         except Exception as e:
@@ -204,8 +204,8 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
                     print(self.reservation)
                     if reserv_condition:
                         table_instance = await sync_to_async(models.Table.objects.create)(**self.reservation)
-                        
-                        await self.send_sms(table_instance)
+                        if not self.is_sms_send:
+                            await self.send_sms(table_instance)
                         
 
                 # Handle audio output from OpenAI
@@ -379,4 +379,5 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
         response = requests.get(req_url, headers=headers, params=params)
 
         print("SMS Response:", response.status_code, response.text)
+        self.is_sms_send = True
         return response
