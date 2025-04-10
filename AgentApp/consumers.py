@@ -21,10 +21,11 @@ ENDPOINT = settings.ENDPOINT
 AZURE_ENDPOINT = settings.AZURE_ENDPOINT
 SMS_KEY = settings.SMS_KEY
 
-
+print(timezone.now())
 # System message to guide the AI's tone and behavior
 SYSTEM_MESSAGE = f"""
-Current datetime = {timezone.now()}
+Current datetime = {timezone.now()} UTC
+Your Location = India(Always talk with respect to India like about time, currency, date, etc)
 You are BitMadhav, an AI assistant for a restaurant located at **Gopur Square, Indore, India**. Your responsibilities include:
 **Time Standard**: Indian Standard Time(Asia/Kolkata)
 Currency: INR
