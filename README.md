@@ -60,6 +60,10 @@
     ENDPOINT=wss://your-resource-name.openai.azure.com
 
     AZURE_ENDPOINT=https://your-resource-name.openai.azure.com
+
+    SMS_KEY = your fast2sms api key
+
+    HOST = your hoste with any protocol :- abc.com not https://abc.com/
     
 
     # Twilio settings
@@ -136,4 +140,8 @@
  ## Contact
 
  For questions or support, please contact [vivekrajgupta2002@outlook.com](mailto:vivekrajgupta2002@outlook.com).
+
+ ## Special Mention
+ [amanp8l](https://github.com/amanp8l/ai-call)
+ 
 
