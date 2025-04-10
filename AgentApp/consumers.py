@@ -12,14 +12,14 @@ from django.utils.timezone import localdate
 from datetime import datetime, timedelta
 from openai import AzureOpenAI
 from twilio.rest import Client
+import requests
 
 # Configuration variables from Django settings
 OPENAI_API_KEY = settings.OPENAI_API_KEY
 ENDPOINT = settings.ENDPOINT
 AZURE_ENDPOINT = settings.AZURE_ENDPOINT
-TWILIO_SID = settings.TWILIO_SID
-TWILIO_TOKEN = settings.TWILIO_TOKEN
-TWILIO_NUMBER = settings.TWILIO_NUMBER
+SMS_KEY = settings.SMS_KEY
+
 
 # System message to guide the AI's tone and behavior
 SYSTEM_MESSAGE = """
@@ -203,8 +203,9 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
                     )
                     print(self.reservation)
                     if reserv_condition:
-                        await sync_to_async(models.Table.objects.create)(**self.reservation)
-                        await self.send_sms(self.reservation)
+                        table_instance = await sync_to_async(models.Table.objects.create)(**self.reservation)
+                        
+                        await self.send_sms(table_instance)
                         
 
                 # Handle audio output from OpenAI
@@ -352,14 +353,30 @@ class MediaStreamConsumer(AsyncWebsocketConsumer):
 
     @sync_to_async  
     def send_sms(self, message_info):
-        view_link = f"https://{settings.HOST}/reservation/{message_info['phone']}/{message_info['id']}/"
+        req_url = 'https://www.fast2sms.com/dev/bulkV2'
+        
+
+        view_link = f"https://{settings.HOST}/api/reservation/{message_info.phone}/{message_info.id}/"
 
         message = (
-            f"Hello {message_info['name']}, your table for {message_info['guests']} is confirmed at BitMadhav on "
-            f"{message_info['date']} at {message_info['time']}. "
-            "Please arrive on time. If you need any changes, call +91XXXXXXXXXX. "
-            f"View reservation: {view_link} 🍽️"
+            f"Reservation Details: {view_link}"
         )
 
-        myClient = Client(TWILIO_SID, TWILIO_TOKEN)
-        myClient.messages.create(from_=TWILIO_NUMBER, body=message, to=self.caller_number)
+        headers = {
+            'cache-control': "no-cache"
+        }
+        number = message_info.phone.replace('+91', "")
+
+        params = {
+            'authorization': settings.SMS_KEY,
+            "message": message,
+            "language": "english",
+            "route": "q",
+            "numbers": number,
+        }
+
+
+        response = requests.get(req_url, headers=headers, params=params)
+
+        print("SMS Response:", response.status_code, response.text)
+        return response

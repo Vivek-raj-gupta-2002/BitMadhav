@@ -30,10 +30,12 @@ SECRET_KEY = 'django-insecure-a#jr!+1u1xkw0(7ojgwhs(^wxdj5+w^n@je8u83=r^c$dr!3z+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['2a8a-2401-4900-7cd4-2a70-a175-875d-f205-e2bd.ngrok-free.app', 'bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net', '127.0.0.1', "169.254.129.2", '169.254.129.4']
-CSRF_TRUSTED_ORIGINS  = ['https://2a8a-2401-4900-7cd4-2a70-a175-875d-f205-e2bd.ngrok-free.app', 'https://bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net', 'http://localhost:8000']
+HOST = os.environ.get("HOST", "localhost:8000")
+print(HOST)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [HOST, 'bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net', '127.0.0.1', "169.254.129.2", '169.254.129.4']
+CSRF_TRUSTED_ORIGINS  = [f'https://{HOST}', 'https://bitmadhav-dsefb8ergsg4hwat.canadacentral-01.azurewebsites.net', 'http://localhost:8000']
+
 # CSRF_TRUSTED_ORIGINS = ['*']
 
 # Application definition
@@ -146,11 +148,10 @@ STATIC_ROOT = os.path.join(BASE_DIR / 'staticFiles')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# API KEYS
+
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 ENDPOINT = os.getenv('ENDPOINT')
 AZURE_ENDPOINT = os.getenv('AZURE_ENDPOINT')
-TWILIO_SID = os.getenv('TWILIO_SID')
-TWILIO_TOKEN = os.getenv('TWILIO_AUTH_TOKEN')
-TWILIO_NUMBER = os.getenv('TWILIO_NUMBER')
-HOST = os.environ.get("BASE_URL", "localhost:8000")
+SMS_KEY = os.getenv('SMS_KEY')
 # print(OPENAI_API_KEY, ENDPOINT, AZURE_ENDPOINT)
