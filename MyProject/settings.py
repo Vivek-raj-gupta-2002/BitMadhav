@@ -28,7 +28,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-a#jr!+1u1xkw0(7ojgwhs(^wxdj5+w^n@je8u83=r^c$dr!3z+'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 HOST = os.environ.get("HOST", "localhost:8000")
 print(HOST)
@@ -130,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-in'
 
-TIME_ZONE = 'Asia/Kolkata'
+TIME_ZONE = 'Europe/Paris'
 
 USE_I18N = True
 

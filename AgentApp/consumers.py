@@ -9,6 +9,7 @@ from django.conf import settings
 from AgentApp import models
 from asgiref.sync import sync_to_async
 from django.utils.timezone import localdate
+from django.utils import timezone
 from datetime import datetime, timedelta
 from openai import AzureOpenAI
 from twilio.rest import Client
@@ -22,7 +23,8 @@ SMS_KEY = settings.SMS_KEY
 
 
 # System message to guide the AI's tone and behavior
-SYSTEM_MESSAGE = """
+SYSTEM_MESSAGE = f"""
+Current datetime = {timezone.now()}
 You are BitMadhav, an AI assistant for a restaurant located at **Gopur Square, Indore, India**. Your responsibilities include:
 **Time Standard**: Indian Standard Time(Asia/Kolkata)
 Currency: INR
@@ -87,7 +89,7 @@ When handling reservations:
 
 Note: We are not talking food orders right now!!
 """
-
+print(SYSTEM_MESSAGE)
 # Voice configuration for OpenAI responses
 VOICE = 'alloy'
 
